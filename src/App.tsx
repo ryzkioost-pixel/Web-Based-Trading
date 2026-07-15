@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { TradeForm } from './components/TradeForm';
+import { CloseTradeForm } from './components/CloseTradeForm';
 import { TradeLog } from './components/TradeLog';
 import { Dashboard } from './components/Dashboard';
 import { RulesSettings } from './components/RulesSettings';
 import { useProfiles } from './useProfiles';
 
-type Tab = 'calculator' | 'log' | 'dashboard' | 'rules';
+type Tab = 'calculator' | 'close' | 'log' | 'dashboard' | 'rules';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'calculator', label: 'Calculator' },
+  { id: 'close', label: 'Close Trade' },
   { id: 'log', label: 'Trade Log' },
   { id: 'dashboard', label: 'Dashboard & Insight' },
   { id: 'rules', label: 'Rules' },
@@ -137,6 +139,7 @@ function ProfileSwitcher({
 
 function App() {
   const [tab, setTab] = useState<Tab>('calculator');
+  const [closingTradeId, setClosingTradeId] = useState<string | null>(null);
   const {
     profiles,
     activeProfile,
@@ -202,8 +205,29 @@ function App() {
 
       <main className="flex-1 pb-10">
         {tab === 'calculator' && <TradeForm rules={activeProfile.rules} onSubmit={addTrade} />}
+        {tab === 'close' && (
+          <CloseTradeForm
+            trades={activeProfile.trades}
+            rules={activeProfile.rules}
+            selectedId={closingTradeId}
+            onSelectedIdChange={setClosingTradeId}
+            onClose={(id, patch) => {
+              updateTrade(id, patch);
+              setClosingTradeId(null);
+            }}
+          />
+        )}
         {tab === 'log' && (
-          <TradeLog trades={activeProfile.trades} rules={activeProfile.rules} onUpdate={updateTrade} onDelete={deleteTrade} />
+          <TradeLog
+            trades={activeProfile.trades}
+            rules={activeProfile.rules}
+            onUpdate={updateTrade}
+            onDelete={deleteTrade}
+            onRequestClose={(id) => {
+              setClosingTradeId(id);
+              setTab('close');
+            }}
+          />
         )}
         {tab === 'dashboard' && <Dashboard trades={activeProfile.trades} rules={activeProfile.rules} />}
         {tab === 'rules' && (

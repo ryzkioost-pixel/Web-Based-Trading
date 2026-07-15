@@ -150,26 +150,6 @@ export function TradeForm({ rules, onSubmit }: { rules: RuleConfig; onSubmit: (t
           </div>
         </Card>
 
-        <Card>
-          <h2 className="mb-4 text-base font-semibold text-slate-900 dark:text-slate-100">Exit (optional)</h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <Field label="Exit Price (Rp)">
-              <NumberInput
-                value={draft.exitPrice ?? ''}
-                onChange={(e) => set('exitPrice', numOrNull(e.target.value))}
-                placeholder="1155"
-              />
-            </Field>
-            <Field label="Exit Date">
-              <TextInput
-                type="date"
-                value={draft.exitDate ?? ''}
-                onChange={(e) => set('exitDate', e.target.value || null)}
-              />
-            </Field>
-          </div>
-        </Card>
-
         <button
           type="submit"
           disabled={!canSubmit}
@@ -227,38 +207,17 @@ export function TradeForm({ rules, onSubmit }: { rules: RuleConfig; onSubmit: (t
             <Metric label="Reward:Risk" value={rewardRisk !== null ? `${fmtNum(rewardRisk, 2)}x` : '—'} />
           </div>
 
-          {preview.exitPrice !== null && (
-            <div className="border-t border-slate-200 pt-4 dark:border-slate-800">
-              <div className="grid grid-cols-2 gap-4">
-                <Metric label="Hold Days" value={preview.holdDays ?? '—'} tone={preview.holdDays !== null ? (preview.holdDays <= rules.maxHoldDays ? 'good' : 'bad') : undefined} />
-                <Metric label="Gross P/L" value={fmtRp(preview.grossPL)} />
-                <Metric label="Buy Fee" value={fmtRp(preview.buyFee)} />
-                <Metric label="Sell Fee" value={fmtRp(preview.sellFee)} />
-                <Metric
-                  label="Net P/L"
-                  value={fmtRp(preview.netPL)}
-                  tone={preview.netPL !== null ? (preview.netPL > 0 ? 'good' : 'bad') : undefined}
-                />
-                <Metric
-                  label="R-Multiple"
-                  value={preview.rMultiple !== null ? `${fmtNum(preview.rMultiple, 2)}R` : '—'}
-                  tone={preview.rMultiple !== null ? (preview.rMultiple > 0 ? 'good' : 'bad') : undefined}
-                />
-              </div>
-              <div className="mt-4">
-                <Metric
-                  label="Compliance"
-                  value={preview.compliance ?? '—'}
-                  tone={preview.compliance === 'CLEAN' ? 'good' : preview.compliance === 'DIRTY' ? 'bad' : undefined}
-                />
-              </div>
-            </div>
-          )}
-
-          <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-            Risk budget is fixed at {fmtRp(rules.rUnit)} per R and capital per position is capped at {fmtRp(rules.maxCapitalDeployed)}.
-            Suggested lots respects both caps automatically. Adjust these in the Rules tab.
-          </p>
+          <div className="border-t border-slate-200 pt-4 text-xs leading-relaxed text-slate-500 dark:border-slate-800 dark:text-slate-400">
+            <p>
+              Risk budget is fixed at {fmtRp(rules.rUnit)} per R and capital per position is capped at{' '}
+              {fmtRp(rules.maxCapitalDeployed)}. Suggested lots respects both caps automatically. Adjust these in the
+              Rules tab.
+            </p>
+            <p className="mt-2">
+              Trades log as <span className="font-semibold">open</span> — record the real exit price and date later
+              from the Close Trade tab, once the position is actually sold.
+            </p>
+          </div>
         </Card>
       </div>
     </form>

@@ -8,10 +8,16 @@ brokerage fees, discipline/compliance rules).
 
 - **Calculator** — enter a stock, entry price, support/resistance, and lots;
   see live R-check (reward:risk ≥ 1.5), suggested lot size, risk, capital
-  deployed, stop %, and box position before you commit to a trade.
+  deployed, stop %, and box position before you commit to a trade. Every
+  trade logs as **open** — exit price isn't asked for here, since it isn't
+  known until the position is actually sold.
+- **Close Trade** — pick an open position, enter the real exit price and
+  date once it's sold, and see the resulting gross/net P/L, fees,
+  R-multiple, and compliance verdict live before confirming.
 - **Trade Log** — every logged trade with all derived columns (fees, gross/net
-  P/L, R-multiple, cumulative equity, drawdown, compliance verdict). Lots,
-  exit price, and exit date are editable inline to close out a trade.
+  P/L, R-multiple, cumulative equity, drawdown, compliance verdict). Open
+  trades show a Close button that jumps to the Close Trade tab; lots stay
+  editable inline.
 - **Dashboard & Insight** — win rate, payoff ratio, expectancy (in Rp and in
   R), total net P/L, max drawdown, an equity curve, average hold time for
   winners/losers, phase progress toward a configurable trade-count target,

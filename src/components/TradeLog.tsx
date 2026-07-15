@@ -1,7 +1,7 @@
 import type { RuleConfig, TradeComputed } from '../types';
 import { computeTradeSeries } from '../calc';
 import { fmtDate, fmtNum, fmtPct, fmtRp } from '../format';
-import { Badge, Card, NumberInput, TextInput } from './ui';
+import { Badge, Card, NumberInput } from './ui';
 import type { Trade } from '../types';
 
 function StopCell({ trade }: { trade: TradeComputed }) {
@@ -26,11 +26,13 @@ export function TradeLog({
   rules,
   onUpdate,
   onDelete,
+  onRequestClose,
 }: {
   trades: Trade[];
   rules: RuleConfig;
   onUpdate: (id: string, patch: Partial<Trade>) => void;
   onDelete: (id: string) => void;
+  onRequestClose: (id: string) => void;
 }) {
   const computed = computeTradeSeries(trades, rules);
 
@@ -65,6 +67,7 @@ export function TradeLog({
                 'Capital',
                 'Stop %',
                 'Box %',
+                'Status',
                 'Exit Price',
                 'Exit Date',
                 'Hold',
@@ -112,20 +115,23 @@ export function TradeLog({
                   <StopCell trade={t} />
                 </td>
                 <td className="whitespace-nowrap px-3 py-2 tabular-nums">{fmtPct(t.boxPosition, 0)}</td>
-                <td className="whitespace-nowrap px-2 py-1">
-                  <NumberInput
-                    value={t.exitPrice ?? ''}
-                    onChange={(e) => onUpdate(t.id, { exitPrice: e.target.value === '' ? null : Number(e.target.value) })}
-                    className="w-24 !py-1"
-                  />
+                <td className="whitespace-nowrap px-3 py-2">
+                  {t.exitPrice === null ? (
+                    <button
+                      onClick={() => onRequestClose(t.id)}
+                      className="rounded-md border border-indigo-300 bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-300"
+                    >
+                      Close
+                    </button>
+                  ) : (
+                    <Badge tone="neutral">Closed</Badge>
+                  )}
                 </td>
-                <td className="whitespace-nowrap px-2 py-1">
-                  <TextInput
-                    type="date"
-                    value={t.exitDate ?? ''}
-                    onChange={(e) => onUpdate(t.id, { exitDate: e.target.value || null })}
-                    className="w-36 !py-1"
-                  />
+                <td className="whitespace-nowrap px-3 py-2 tabular-nums">
+                  {t.exitPrice === null ? <span className="text-slate-400">—</span> : fmtRp(t.exitPrice)}
+                </td>
+                <td className="whitespace-nowrap px-3 py-2">
+                  {t.exitDate === null ? <span className="text-slate-400">—</span> : fmtDate(t.exitDate)}
                 </td>
                 <td className="whitespace-nowrap px-3 py-2 tabular-nums">{t.holdDays ?? '—'}</td>
                 <td className="whitespace-nowrap px-3 py-2 tabular-nums">

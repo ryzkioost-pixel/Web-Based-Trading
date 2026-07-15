@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import type { BookRead, Trade, Trend } from '../types';
-import { computeTrade, MAX_BOX_POSITION, MAX_CAPITAL_DEPLOYED, MAX_HOLD_DAYS, R_UNIT } from '../calc';
+import type { BookRead, RuleConfig, Trade, Trend } from '../types';
+import { computeTrade } from '../calc';
 import { fmtNum, fmtPct, fmtRp } from '../format';
 import { Badge, Card, Field, Metric, NumberInput, Select, TextInput } from './ui';
 
@@ -28,10 +28,10 @@ function emptyDraft(): Trade {
   };
 }
 
-export function TradeForm({ onSubmit }: { onSubmit: (trade: Trade) => void }) {
+export function TradeForm({ rules, onSubmit }: { rules: RuleConfig; onSubmit: (trade: Trade) => void }) {
   const [draft, setDraft] = useState<Trade>(emptyDraft);
 
-  const preview = useMemo(() => computeTrade(draft), [draft]);
+  const preview = useMemo(() => computeTrade(draft, rules), [draft, rules]);
   const rewardRisk = useMemo(() => {
     const { entryPrice, support, resistance } = draft;
     if (entryPrice === null || support === null || resistance === null) return null;
@@ -202,7 +202,7 @@ export function TradeForm({ onSubmit }: { onSubmit: (trade: Trade) => void }) {
               value={fmtRp(preview.capitalDeployed)}
               tone={
                 preview.capitalDeployed !== null
-                  ? preview.capitalDeployed > MAX_CAPITAL_DEPLOYED
+                  ? preview.capitalDeployed > rules.maxCapitalDeployed
                     ? 'bad'
                     : 'good'
                   : undefined
@@ -218,7 +218,7 @@ export function TradeForm({ onSubmit }: { onSubmit: (trade: Trade) => void }) {
               value={fmtPct(preview.boxPosition, 0)}
               tone={
                 preview.boxPosition !== null
-                  ? preview.boxPosition <= MAX_BOX_POSITION
+                  ? preview.boxPosition <= rules.maxBoxPosition
                     ? 'good'
                     : 'bad'
                   : undefined
@@ -230,7 +230,7 @@ export function TradeForm({ onSubmit }: { onSubmit: (trade: Trade) => void }) {
           {preview.exitPrice !== null && (
             <div className="border-t border-slate-200 pt-4 dark:border-slate-800">
               <div className="grid grid-cols-2 gap-4">
-                <Metric label="Hold Days" value={preview.holdDays ?? '—'} tone={preview.holdDays !== null ? (preview.holdDays <= MAX_HOLD_DAYS ? 'good' : 'bad') : undefined} />
+                <Metric label="Hold Days" value={preview.holdDays ?? '—'} tone={preview.holdDays !== null ? (preview.holdDays <= rules.maxHoldDays ? 'good' : 'bad') : undefined} />
                 <Metric label="Gross P/L" value={fmtRp(preview.grossPL)} />
                 <Metric label="Buy Fee" value={fmtRp(preview.buyFee)} />
                 <Metric label="Sell Fee" value={fmtRp(preview.sellFee)} />
@@ -256,8 +256,8 @@ export function TradeForm({ onSubmit }: { onSubmit: (trade: Trade) => void }) {
           )}
 
           <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-            Risk budget is fixed at {fmtRp(R_UNIT)} per R and capital per position is capped at {fmtRp(MAX_CAPITAL_DEPLOYED)}.
-            Suggested lots respects both caps automatically.
+            Risk budget is fixed at {fmtRp(rules.rUnit)} per R and capital per position is capped at {fmtRp(rules.maxCapitalDeployed)}.
+            Suggested lots respects both caps automatically. Adjust these in the Rules tab.
           </p>
         </Card>
       </div>

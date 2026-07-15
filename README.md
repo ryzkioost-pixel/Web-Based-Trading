@@ -14,21 +14,31 @@ brokerage fees, discipline/compliance rules).
   exit price, and exit date are editable inline to close out a trade.
 - **Dashboard & Insight** — win rate, payoff ratio, expectancy (in Rp and in
   R), total net P/L, max drawdown, an equity curve, average hold time for
-  winners/losers, phase progress toward 30 trades, and compliance rate.
+  winners/losers, phase progress toward a configurable trade-count target,
+  and compliance rate.
+- **Rules** — every threshold below is editable, per profile, with live
+  recalculation everywhere it's used.
+- **Profiles** — separate named rule-sets + trade logs in the same browser
+  (e.g. "Conservative", "Aggressive", one per strategy). Switch, rename,
+  duplicate, or delete profiles from the header. No login required.
 
-## Risk model
+## Risk model (defaults — all configurable in the Rules tab)
 
-- 1R is fixed at **Rp 125,000**.
-- Capital per position is capped at **Rp 5,000,000**.
-- Buy fee: `max(capital deployed × 0.18%, Rp 5,000)`.
-- Sell fee: `max(shares × exit price × 0.28%, Rp 5,000)`.
-- A trade is **CLEAN** only if: R-check is TAKE, position size is within
-  ±20%/0% of the suggested lots, the stop isn't a breach (<1.5% or >3% of
-  entry price), entry sits in the lower 40% of the support–resistance box,
-  capital deployed is within the cap, and hold time is ≤3 days.
+- 1R defaults to **Rp 125,000**.
+- Capital per position defaults to a cap of **Rp 5,000,000**.
+- Buy fee: `max(capital deployed × buy fee rate, minimum fee)` — defaults to 0.18% / Rp 5,000.
+- Sell fee: `max(shares × exit price × sell fee rate, minimum fee)` — defaults to 0.28% / Rp 5,000.
+- A trade is **CLEAN** only if: R-check is TAKE (reward:risk ≥ the configured
+  minimum, default 1.5), position size is within the configured undersized
+  ratio of suggested lots and never over, the stop isn't a breach (outside
+  the configured tight/wide % of entry price), entry sits at or below the
+  configured box-position fraction of the support–resistance range, capital
+  deployed is within the cap, and hold time is within the configured max
+  days.
 
 All formulas are ported 1:1 from the original spreadsheet in
-[`src/calc.ts`](src/calc.ts).
+[`src/calc.ts`](src/calc.ts), parameterized by a `RuleConfig` per profile
+instead of hardcoded constants.
 
 ## Development
 

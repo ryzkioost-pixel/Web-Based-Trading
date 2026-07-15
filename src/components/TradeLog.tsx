@@ -1,4 +1,4 @@
-import type { TradeComputed } from '../types';
+import type { RuleConfig, TradeComputed } from '../types';
 import { computeTradeSeries } from '../calc';
 import { fmtDate, fmtNum, fmtPct, fmtRp } from '../format';
 import { Badge, Card, NumberInput, TextInput } from './ui';
@@ -23,14 +23,16 @@ function th(label: string) {
 
 export function TradeLog({
   trades,
+  rules,
   onUpdate,
   onDelete,
 }: {
   trades: Trade[];
+  rules: RuleConfig;
   onUpdate: (id: string, patch: Partial<Trade>) => void;
   onDelete: (id: string) => void;
 }) {
-  const computed = computeTradeSeries(trades);
+  const computed = computeTradeSeries(trades, rules);
 
   if (trades.length === 0) {
     return (

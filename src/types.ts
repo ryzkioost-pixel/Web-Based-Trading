@@ -19,6 +19,22 @@ export interface Trade {
   exitDate: string | null; // S
 }
 
+/** Every tunable rule the calculation engine uses — one set per profile. */
+export interface RuleConfig {
+  rUnit: number; // rupiah value of 1R
+  maxCapitalDeployed: number; // max capital per position (Rp)
+  buyFeeRate: number; // fraction, e.g. 0.0018 = 0.18%
+  sellFeeRate: number; // fraction, e.g. 0.0028 = 0.28%
+  minFee: number; // minimum fee per leg (Rp)
+  rCheckMinRatio: number; // reward:risk must be >= this to "TAKE"
+  stopWidePct: number; // stop wider than this fraction of entry = BREACH-WIDE
+  stopTightPct: number; // stop tighter than this fraction of entry = BREACH-TIGHT
+  maxBoxPosition: number; // entry must sit at or below this fraction of the support-resistance range
+  maxHoldDays: number; // trades held longer than this are non-compliant
+  undersizedRatio: number; // lots below suggested * this ratio = UNDERSIZED
+  phaseTargetTrades: number; // trade count target for "next phase" progress
+}
+
 export type RCheck = 'TAKE' | 'SKIP' | null;
 export type SizeVariance = 'OVERSIZED' | 'UNDERSIZED' | 'OK' | null;
 export type WinLoss = 'W' | 'L' | null;
@@ -64,4 +80,12 @@ export interface DashboardStats {
   avgHoldLosers: number | null;
   cleanCount: number;
   dirtyCount: number;
+}
+
+/** A named workspace: its own rule set and its own trade log. */
+export interface Profile {
+  id: string;
+  name: string;
+  rules: RuleConfig;
+  trades: Trade[];
 }

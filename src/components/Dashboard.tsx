@@ -1,5 +1,5 @@
-import { computeDashboard, computeTradeSeries, PHASE_TARGET_TRADES } from '../calc';
-import type { Trade } from '../types';
+import { computeDashboard, computeTradeSeries } from '../calc';
+import type { RuleConfig, Trade } from '../types';
 import { fmtNum, fmtPct, fmtRp } from '../format';
 import { Card, Metric } from './ui';
 import { EquityChart } from './EquityChart';
@@ -13,11 +13,11 @@ function StatCard({ label, children }: { label: string; children: React.ReactNod
   );
 }
 
-export function Dashboard({ trades }: { trades: Trade[] }) {
-  const computed = computeTradeSeries(trades);
-  const stats = computeDashboard(computed);
+export function Dashboard({ trades, rules }: { trades: Trade[]; rules: RuleConfig }) {
+  const computed = computeTradeSeries(trades, rules);
+  const stats = computeDashboard(computed, rules);
 
-  const phasePct = Math.min(1, stats.tradeCount / PHASE_TARGET_TRADES);
+  const phasePct = Math.min(1, stats.tradeCount / rules.phaseTargetTrades);
   const complianceTotal = stats.cleanCount + stats.dirtyCount;
 
   return (
@@ -76,7 +76,7 @@ export function Dashboard({ trades }: { trades: Trade[] }) {
         <Card>
           <h2 className="mb-3 text-base font-semibold text-slate-900 dark:text-slate-100">Next Phase Progress</h2>
           <div className="mb-2 flex items-baseline justify-between text-sm">
-            <span className="text-slate-500 dark:text-slate-400">Trades: {stats.tradeCount} / {PHASE_TARGET_TRADES}</span>
+            <span className="text-slate-500 dark:text-slate-400">Trades: {stats.tradeCount} / {rules.phaseTargetTrades}</span>
             <span className="font-semibold text-slate-900 dark:text-slate-100">{fmtPct(phasePct, 0)}</span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">

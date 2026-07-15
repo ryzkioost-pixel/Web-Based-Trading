@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, Consolas, monospace;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 dark:bg-slate-700;
+  border-radius: 999px;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

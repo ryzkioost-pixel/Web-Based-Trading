@@ -1,13 +1,11 @@
 import { useMemo, useState } from 'react';
 import type { BookRead, RuleConfig, Trade, Trend } from '../types';
 import { computeTrade } from '../calc';
-import { fmtNum, fmtPct, fmtRp } from '../format';
+import { fmtNum, fmtPct, fmtRp, todayISO } from '../format';
 import { Badge, Card, Field, Metric, NumberInput, Select, TextInput } from './ui';
 
 const TRENDS: Trend[] = ['Sideways', 'Downtrend', 'Uptrend'];
 const BOOK_READS: BookRead[] = ['Balance', 'Buy', 'Sell'];
-
-const todayISO = () => new Date().toISOString().slice(0, 10);
 
 function emptyDraft(): Trade {
   return {
@@ -45,7 +43,13 @@ export function TradeForm({ rules, onSubmit }: { rules: RuleConfig; onSubmit: (t
 
   const numOrNull = (v: string) => (v === '' ? null : Number(v));
 
-  const canSubmit = draft.stock.trim() !== '' && draft.entryPrice !== null && draft.support !== null && draft.resistance !== null && draft.lots !== null;
+  const canSubmit =
+    draft.stock.trim() !== '' &&
+    draft.entryDate !== '' &&
+    draft.entryPrice !== null &&
+    draft.support !== null &&
+    draft.resistance !== null &&
+    draft.lots !== null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +106,12 @@ export function TradeForm({ rules, onSubmit }: { rules: RuleConfig; onSubmit: (t
           <h2 className="mb-4 text-base font-semibold text-slate-900 dark:text-slate-100">Position Sizing</h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             <Field label="Entry Date">
-              <TextInput type="date" value={draft.entryDate} onChange={(e) => set('entryDate', e.target.value)} />
+              <TextInput
+                type="date"
+                value={draft.entryDate}
+                onChange={(e) => set('entryDate', e.target.value)}
+                required
+              />
             </Field>
             <Field label="Entry Price (Rp)">
               <NumberInput

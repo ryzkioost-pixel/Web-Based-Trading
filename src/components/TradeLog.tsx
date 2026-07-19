@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { RuleConfig, TradeComputed } from '../types';
 import { computeTradeSeries } from '../calc';
 import { fmtDate, fmtNum, fmtPct, fmtRp } from '../format';
@@ -34,7 +35,7 @@ export function TradeLog({
   onDelete: (id: string) => void;
   onRequestClose: (id: string) => void;
 }) {
-  const computed = computeTradeSeries(trades, rules);
+  const computed = useMemo(() => computeTradeSeries(trades, rules), [trades, rules]);
 
   if (trades.length === 0) {
     return (

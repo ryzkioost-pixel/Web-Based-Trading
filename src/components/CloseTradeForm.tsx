@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { RuleConfig, Trade } from '../types';
 import { computeTrade } from '../calc';
-import { fmtDate, fmtNum, fmtPct, fmtRp } from '../format';
+import { fmtDate, fmtNum, fmtPct, fmtRp, todayISO } from '../format';
 import { Badge, Card, Field, Metric, NumberInput, TextInput } from './ui';
-
-const todayISO = () => new Date().toISOString().slice(0, 10);
 
 export function CloseTradeForm({
   trades,

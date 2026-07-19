@@ -63,7 +63,7 @@ function ProfileSwitcher({
         >
           <input
             autoFocus
-            value={newName || activeName}
+            value={newName}
             onChange={(e) => setNewName(e.target.value)}
             className="w-32 rounded-lg border border-slate-300 px-2 py-1 text-xs dark:border-slate-700 dark:bg-slate-900"
           />
@@ -169,7 +169,10 @@ function App() {
           <ProfileSwitcher
             profiles={profiles}
             activeProfileId={activeProfileId}
-            onSwitch={setActiveProfileId}
+            onSwitch={(id) => {
+              setActiveProfileId(id);
+              setClosingTradeId(null);
+            }}
             onCreate={(name, cloneRules) => createProfile(name, { cloneRules })}
             onRename={renameProfile}
             onDelete={deleteProfile}

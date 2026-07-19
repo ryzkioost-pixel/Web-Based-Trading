@@ -5,17 +5,26 @@ const rupiah = new Intl.NumberFormat('id-ID', {
 });
 
 export function fmtRp(v: number | null | undefined): string {
-  if (v === null || v === undefined || Number.isNaN(v)) return '—';
+  if (v === null || v === undefined || !Number.isFinite(v)) return '—';
   return rupiah.format(v).replace('IDR', 'Rp');
 }
 
 export function fmtPct(v: number | null | undefined, digits = 1): string {
-  if (v === null || v === undefined || Number.isNaN(v)) return '—';
+  if (v === null || v === undefined || !Number.isFinite(v)) return '—';
   return `${(v * 100).toFixed(digits)}%`;
 }
 
+/** Today's date as a local (not UTC) ISO yyyy-mm-dd string, for date-input defaults. */
+export function todayISO(): string {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export function fmtNum(v: number | null | undefined, digits = 2): string {
-  if (v === null || v === undefined || Number.isNaN(v)) return '—';
+  if (v === null || v === undefined || !Number.isFinite(v)) return '—';
   return v.toLocaleString('en-US', { maximumFractionDigits: digits });
 }
 

@@ -4,20 +4,56 @@ import { DEFAULT_RULES } from './calc';
 import { seedTrades } from './seed';
 
 const STORAGE_KEY = 'trading-calculator/profiles/v2';
+/** Storage key used before multi-profile support existed — migrated on first load, then left alone. */
+const LEGACY_TRADES_KEY = 'trading-calculator/trades/v1';
 
-interface StoredState {
-  profiles: Profile[];
-  activeProfileId: string;
+function isValidTrade(t: unknown): t is Trade {
+  return (
+    !!t &&
+    typeof t === 'object' &&
+    typeof (t as Trade).id === 'string' &&
+    typeof (t as Trade).stock === 'string'
+  );
+}
+
+function isValidProfile(p: unknown): p is Profile {
+  return (
+    !!p &&
+    typeof p === 'object' &&
+    typeof (p as Profile).id === 'string' &&
+    typeof (p as Profile).name === 'string' &&
+    typeof (p as Profile).rules === 'object' &&
+    (p as Profile).rules !== null &&
+    Array.isArray((p as Profile).trades)
+  );
+}
+
+function legacyTrades(): Trade[] {
+  try {
+    const raw = localStorage.getItem(LEGACY_TRADES_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(isValidTrade) : [];
+  } catch {
+    return [];
+  }
 }
 
 function defaultState(): StoredState {
+  // Recover trades logged before multi-profile support existed, if any are sitting under the old key.
+  const migrated = legacyTrades();
   const profile: Profile = {
     id: crypto.randomUUID(),
     name: 'Default',
     rules: { ...DEFAULT_RULES },
-    trades: seedTrades,
+    trades: migrated.length > 0 ? migrated : seedTrades,
   };
   return { profiles: [profile], activeProfileId: profile.id };
+}
+
+interface StoredState {
+  profiles: Profile[];
+  activeProfileId: string;
 }
 
 function loadState(): StoredState {
@@ -25,14 +61,17 @@ function loadState(): StoredState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState();
     const parsed = JSON.parse(raw) as StoredState;
-    if (!Array.isArray(parsed.profiles) || parsed.profiles.length === 0) return defaultState();
+    const rawProfiles = Array.isArray(parsed.profiles) ? parsed.profiles : [];
+    const validProfiles = rawProfiles.filter(isValidProfile);
+    if (validProfiles.length === 0) return defaultState();
     // Backfill any rule fields missing from an older save.
-    const profiles = parsed.profiles.map((p) => ({ ...p, rules: { ...DEFAULT_RULES, ...p.rules } }));
+    const profiles = validProfiles.map((p) => ({ ...p, rules: { ...DEFAULT_RULES, ...p.rules } }));
     const activeProfileId = profiles.some((p) => p.id === parsed.activeProfileId)
       ? parsed.activeProfileId
       : profiles[0].id;
     return { profiles, activeProfileId };
-  } catch {
+  } catch (err) {
+    console.error('Failed to load saved trading profiles — starting fresh.', err);
     return defaultState();
   }
 }

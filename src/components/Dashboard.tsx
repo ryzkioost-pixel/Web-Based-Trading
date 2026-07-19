@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { computeDashboard, computeTradeSeries } from '../calc';
 import type { RuleConfig, Trade } from '../types';
 import { fmtNum, fmtPct, fmtRp } from '../format';
@@ -14,10 +15,10 @@ function StatCard({ label, children }: { label: string; children: React.ReactNod
 }
 
 export function Dashboard({ trades, rules }: { trades: Trade[]; rules: RuleConfig }) {
-  const computed = computeTradeSeries(trades, rules);
-  const stats = computeDashboard(computed, rules);
+  const computed = useMemo(() => computeTradeSeries(trades, rules), [trades, rules]);
+  const stats = useMemo(() => computeDashboard(computed, rules), [computed, rules]);
 
-  const phasePct = Math.min(1, stats.tradeCount / rules.phaseTargetTrades);
+  const phasePct = rules.phaseTargetTrades > 0 ? Math.min(1, stats.tradeCount / rules.phaseTargetTrades) : 0;
   const complianceTotal = stats.cleanCount + stats.dirtyCount;
 
   return (

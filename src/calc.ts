@@ -211,7 +211,7 @@ export function computeCompliance(args: {
 /** Compute every derived field for a single trade (everything except the running-series columns AB/AE/AF). */
 export function computeTrade(
   trade: Trade,
-  rules: RuleConfig = DEFAULT_RULES,
+  rules: RuleConfig,
 ): Omit<TradeComputed, 'cumulativeNet' | 'peakEquity' | 'drawdown'> {
   const rCheck = computeRCheck(trade.entryPrice, trade.support, trade.resistance, rules);
   const shares = computeShares(trade.lots);
@@ -266,7 +266,7 @@ export function computeTrade(
  * (cumulative net, peak equity, drawdown), which depend on chronological order.
  * Returns trades sorted by entry date (ties broken by original array order).
  */
-export function computeTradeSeries(trades: Trade[], rules: RuleConfig = DEFAULT_RULES): TradeComputed[] {
+export function computeTradeSeries(trades: Trade[], rules: RuleConfig): TradeComputed[] {
   const withIndex = trades.map((t, index) => ({ t, index }));
   withIndex.sort((a, b) => {
     const dateCmp = (a.t.entryDate || '').localeCompare(b.t.entryDate || '');
@@ -293,7 +293,7 @@ export function computeTradeSeries(trades: Trade[], rules: RuleConfig = DEFAULT_
 }
 
 /** Dashboard aggregate stats — mirrors the '2026 Dashboard and Insight' sheet. */
-export function computeDashboard(trades: TradeComputed[], rules: RuleConfig = DEFAULT_RULES): DashboardStats {
+export function computeDashboard(trades: TradeComputed[], rules: RuleConfig): DashboardStats {
   const clean = trades.filter((t) => t.compliance === 'CLEAN');
   const dirty = trades.filter((t) => t.compliance === 'DIRTY');
 
@@ -302,7 +302,9 @@ export function computeDashboard(trades: TradeComputed[], rules: RuleConfig = DE
   const winRate = tradeCount > 0 ? winCount / tradeCount : null;
 
   const wins = clean.filter((t) => isNum(t.netPL) && t.netPL > 0);
-  const losses = clean.filter((t) => isNum(t.netPL) && t.netPL < 0);
+  // <= 0 to match computeWinLoss's classification (netPL === 0 reads 'L'), so break-even
+  // trades are counted on the loss side of expectancy rather than silently dropped.
+  const losses = clean.filter((t) => isNum(t.netPL) && t.netPL <= 0);
   const avgWin = wins.length ? wins.reduce((s, t) => s + (t.netPL as number), 0) / wins.length : null;
   const avgLoss = losses.length ? losses.reduce((s, t) => s + (t.netPL as number), 0) / losses.length : null;
   const payoffRatio = isNum(avgWin) && isNum(avgLoss) && avgLoss !== 0 ? avgWin / Math.abs(avgLoss) : null;
@@ -311,7 +313,8 @@ export function computeDashboard(trades: TradeComputed[], rules: RuleConfig = DE
     isNum(winRate) && isNum(avgWin) && isNum(avgLoss)
       ? winRate * avgWin + (1 - winRate) * avgLoss
       : null;
-  const expectancyInR = isNum(expectancyPerTrade) ? expectancyPerTrade / rules.rUnit : null;
+  const expectancyInR =
+    isNum(expectancyPerTrade) && rules.rUnit !== 0 ? expectancyPerTrade / rules.rUnit : null;
 
   const totalNetPL = trades.reduce((s, t) => s + (isNum(t.netPL) ? t.netPL : 0), 0);
 

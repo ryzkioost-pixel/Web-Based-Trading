@@ -1,8 +1,44 @@
+import { useEffect, useState } from 'react';
 import type { RuleConfig } from '../types';
 import { Card, Field, NumberInput } from './ui';
 
 const pctToFrac = (v: number) => v / 100;
 const fracToPct = (v: number) => Number((v * 100).toFixed(4));
+
+/**
+ * A number input buffered by local text state: typing an empty/invalid value
+ * doesn't commit anything (so clearing the field to retype doesn't briefly
+ * commit 0), and the field snaps back to the last valid value on blur.
+ */
+function BufferedNumberInput({
+  value,
+  onCommit,
+  step,
+}: {
+  value: number;
+  onCommit: (v: number) => void;
+  step?: number | string;
+}) {
+  const [text, setText] = useState(String(value));
+
+  useEffect(() => {
+    setText(String(value));
+  }, [value]);
+
+  return (
+    <NumberInput
+      value={text}
+      step={step}
+      onChange={(e) => {
+        const raw = e.target.value;
+        setText(raw);
+        const parsed = Number(raw);
+        if (raw.trim() !== '' && Number.isFinite(parsed)) onCommit(parsed);
+      }}
+      onBlur={() => setText(String(value))}
+    />
+  );
+}
 
 function RateField({
   label,
@@ -18,11 +54,7 @@ function RateField({
   return (
     <Field label={label}>
       <div className="flex items-center gap-2">
-        <NumberInput
-          value={fracToPct(value)}
-          step="0.01"
-          onChange={(e) => onChange(pctToFrac(Number(e.target.value)))}
-        />
+        <BufferedNumberInput value={fracToPct(value)} step="0.01" onCommit={(v) => onChange(pctToFrac(v))} />
         <span className="text-sm text-slate-400">%</span>
       </div>
       <span className="text-xs font-normal text-slate-400">{hint}</span>
@@ -48,7 +80,7 @@ function NumField({
   return (
     <Field label={label}>
       <div className="flex items-center gap-2">
-        <NumberInput value={value} step={step} onChange={(e) => onChange(Number(e.target.value))} />
+        <BufferedNumberInput value={value} step={step} onCommit={onChange} />
         {suffix && <span className="text-sm text-slate-400">{suffix}</span>}
       </div>
       <span className="text-xs font-normal text-slate-400">{hint}</span>
